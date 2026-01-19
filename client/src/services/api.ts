@@ -1,13 +1,21 @@
 
 import { Habit, UserStats, Note, User } from '../types';
 
-const API_BASE = import.meta.env.VITE_API_URL
-  ? `${import.meta.env.VITE_API_URL}/api`
-  : 'http://localhost:5000/api';
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 const LOCAL_HABITS_KEY = 'habitflow_habits_backup';
 const LOCAL_NOTES_KEY = 'habitflow_notes_backup';
 const USER_SESSION_KEY = 'habitflow_user_session';
+const AUTH_TOKEN_KEY = 'habitflow_auth_token';
+
+// Helper to get headers with token
+const getHeaders = () => {
+  const token = localStorage.getItem(AUTH_TOKEN_KEY);
+  return {
+    'Content-Type': 'application/json',
+    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+  };
+};
 
 export const login = async (email: string, password: string): Promise<User | null> => {
   try {
@@ -17,9 +25,10 @@ export const login = async (email: string, password: string): Promise<User | nul
       body: JSON.stringify({ email, password }),
     });
     if (!response.ok) throw new Error('Invalid credentials');
-    const user = await response.json();
-    localStorage.setItem(USER_SESSION_KEY, JSON.stringify(user));
-    return user;
+    const data = await response.json();
+    localStorage.setItem(USER_SESSION_KEY, JSON.stringify(data.user));
+    localStorage.setItem(AUTH_TOKEN_KEY, data.token);
+    return data.user;
   } catch (error) {
     console.error('Login failed:', error);
     return null;
@@ -34,9 +43,10 @@ export const register = async (name: string, email: string, password: string): P
       body: JSON.stringify({ name, email, password }),
     });
     if (!response.ok) throw new Error('Registration failed');
-    const user = await response.json();
-    localStorage.setItem(USER_SESSION_KEY, JSON.stringify(user));
-    return user;
+    const data = await response.json();
+    localStorage.setItem(USER_SESSION_KEY, JSON.stringify(data.user));
+    localStorage.setItem(AUTH_TOKEN_KEY, data.token);
+    return data.user;
   } catch (error) {
     console.error('Registration failed:', error);
     return null;
@@ -45,6 +55,7 @@ export const register = async (name: string, email: string, password: string): P
 
 export const logout = () => {
   localStorage.removeItem(USER_SESSION_KEY);
+  localStorage.removeItem(AUTH_TOKEN_KEY);
 };
 
 export const getCurrentUser = (): User | null => {
@@ -69,7 +80,7 @@ const saveLocalData = <T>(key: string, data: T[]) => {
 // HABITS API
 export const getHabits = async (): Promise<Habit[]> => {
   try {
-    const response = await fetch(`${API_BASE}/habits`);
+    const response = await fetch(`${API_BASE}/habits`, { headers: getHeaders() });
     if (!response.ok) throw new Error('Server unreachable');
     const data = await response.json();
     saveLocalData(LOCAL_HABITS_KEY, data);
@@ -83,7 +94,7 @@ export const saveHabit = async (habit: Habit): Promise<Habit[]> => {
   try {
     const response = await fetch(`${API_BASE}/habits`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getHeaders(),
       body: JSON.stringify(habit),
     });
     const data = await response.json();
@@ -99,7 +110,10 @@ export const saveHabit = async (habit: Habit): Promise<Habit[]> => {
 
 export const deleteHabit = async (id: string): Promise<Habit[]> => {
   try {
-    const response = await fetch(`${API_BASE}/habits/${id}`, { method: 'DELETE' });
+    const response = await fetch(`${API_BASE}/habits/${id}`, {
+      method: 'DELETE',
+      headers: getHeaders()
+    });
     const data = await response.json();
     saveLocalData(LOCAL_HABITS_KEY, data);
     return data;
@@ -115,7 +129,7 @@ export const toggleHabitCompletion = async (id: string, date: string): Promise<H
   try {
     const response = await fetch(`${API_BASE}/habits/${id}/toggle`, {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getHeaders(),
       body: JSON.stringify({ date }),
     });
     const data = await response.json();
@@ -140,7 +154,10 @@ export const toggleHabitCompletion = async (id: string, date: string): Promise<H
 
 export const toggleSubtask = async (habitId: string, subtaskId: string): Promise<Habit[]> => {
   try {
-    const response = await fetch(`${API_BASE}/habits/${habitId}/subtask/${subtaskId}`, { method: 'PATCH' });
+    const response = await fetch(`${API_BASE}/habits/${habitId}/subtask/${subtaskId}`, {
+      method: 'PATCH',
+      headers: getHeaders()
+    });
     const data = await response.json();
     saveLocalData(LOCAL_HABITS_KEY, data);
     return data;
@@ -161,7 +178,7 @@ export const toggleSubtask = async (habitId: string, subtaskId: string): Promise
 // NOTES API
 export const getNotes = async (): Promise<Note[]> => {
   try {
-    const response = await fetch(`${API_BASE}/notes`);
+    const response = await fetch(`${API_BASE}/notes`, { headers: getHeaders() });
     const data = await response.json();
     saveLocalData(LOCAL_NOTES_KEY, data);
     return data;
@@ -174,7 +191,7 @@ export const saveNote = async (note: Note): Promise<Note[]> => {
   try {
     const response = await fetch(`${API_BASE}/notes`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getHeaders(),
       body: JSON.stringify(note),
     });
     const data = await response.json();
@@ -190,7 +207,10 @@ export const saveNote = async (note: Note): Promise<Note[]> => {
 
 export const deleteNote = async (id: string): Promise<Note[]> => {
   try {
-    const response = await fetch(`${API_BASE}/notes/${id}`, { method: 'DELETE' });
+    const response = await fetch(`${API_BASE}/notes/${id}`, {
+      method: 'DELETE',
+      headers: getHeaders()
+    });
     const data = await response.json();
     saveLocalData(LOCAL_NOTES_KEY, data);
     return data;

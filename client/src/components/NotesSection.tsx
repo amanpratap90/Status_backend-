@@ -1,25 +1,16 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Plus, Trash2, StickyNote, Loader2 } from 'lucide-react';
 import { Note } from '../types';
 import { NOTE_COLORS } from '../constants';
-import { getNotes, saveNote, deleteNote } from '../services/api';
+import { useNotes, useCreateNote, useDeleteNote } from '../hooks/useData';
 
 const NotesSection: React.FC = () => {
-  const [notes, setNotes] = useState<Note[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const { data: notes = [], isLoading } = useNotes();
+  const createNoteMutation = useCreateNote();
+  const deleteNoteMutation = useDeleteNote();
+
   const [newNoteContent, setNewNoteContent] = useState('');
   const [selectedColor, setSelectedColor] = useState(NOTE_COLORS[0]);
-
-  useEffect(() => {
-    const fetchNotes = async () => {
-      setIsLoading(true);
-      const data = await getNotes();
-      setNotes(data);
-      setIsLoading(false);
-    };
-    fetchNotes();
-  }, []);
 
   const handleAddNote = async () => {
     if (!newNoteContent.trim()) return;
@@ -29,14 +20,12 @@ const NotesSection: React.FC = () => {
       color: selectedColor,
       createdAt: new Date().toISOString()
     };
-    const updated = await saveNote(note);
-    setNotes(updated);
+    await createNoteMutation.mutateAsync(note);
     setNewNoteContent('');
   };
 
   const handleDelete = async (id: string) => {
-    const updated = await deleteNote(id);
-    setNotes(updated);
+    await deleteNoteMutation.mutateAsync(id);
   };
 
   if (isLoading) {
@@ -86,12 +75,12 @@ const NotesSection: React.FC = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {notes.map(note => (
-          <div 
+          <div
             key={note.id}
             className="relative p-6 rounded-2xl min-h-[160px] flex flex-col group animate-in zoom-in duration-300 shadow-lg"
             style={{ backgroundColor: note.color, color: '#000' }}
           >
-            <button 
+            <button
               onClick={() => handleDelete(note.id)}
               className="absolute top-4 right-4 p-1 rounded-lg hover:bg-black/10 opacity-0 group-hover:opacity-100 transition-all"
             >

@@ -1,6 +1,6 @@
-
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,12 +8,14 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet">
   <style>
     :root {
       --bg-main: #050505;
       --accent-primary: #22c55e;
     }
+
     body {
       font-family: 'Inter', sans-serif;
       background-color: var(--bg-main);
@@ -22,6 +24,7 @@
       overflow-x: hidden;
       min-height: 100vh;
     }
+
     /* Animated background blobs */
     .bg-blob {
       position: fixed;
@@ -33,27 +36,46 @@
       opacity: 0.15;
       animation: move 20s infinite alternate;
     }
+
     @keyframes move {
-      from { transform: translate(-10%, -10%) scale(1); }
-      to { transform: translate(20%, 20%) scale(1.2); }
+      from {
+        transform: translate(-10%, -10%) scale(1);
+      }
+
+      to {
+        transform: translate(20%, 20%) scale(1.2);
+      }
     }
 
-    ::-webkit-scrollbar { width: 6px; }
-    ::-webkit-scrollbar-track { background: #000; }
-    ::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
-    ::-webkit-scrollbar-thumb:hover { background: var(--accent-primary); }
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: #000;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #333;
+      border-radius: 10px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--accent-primary);
+    }
 
     .glass {
       background: rgba(255, 255, 255, 0.03);
       backdrop-filter: blur(12px);
       border: 1px solid rgba(255, 255, 255, 0.05);
     }
+
     .neon-glow:hover {
       box-shadow: 0 0 25px rgba(34, 197, 94, 0.2);
       border-color: rgba(34, 197, 94, 0.4);
     }
   </style>
-<script type="importmap">
+  <script type="importmap">
 {
   "imports": {
     "react": "https://esm.sh/react@^19.2.3",
@@ -70,12 +92,14 @@
   }
 }
 </script>
-<link rel="stylesheet" href="/index.css">
+  <link rel="stylesheet" href="/index.css">
 </head>
+
 <body>
   <div class="bg-blob top-0 left-0 bg-emerald-500"></div>
   <div class="bg-blob bottom-0 right-0 bg-purple-600" style="animation-delay: -5s"></div>
   <div id="root"></div>
-<script type="module" src="/index.tsx"></script>
+  <script type="module" src="/src/main.tsx"></script>
 </body>
+
 </html>
