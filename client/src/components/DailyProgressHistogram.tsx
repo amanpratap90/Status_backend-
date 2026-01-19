@@ -2,6 +2,7 @@
 import React, { useEffect, useRef, useMemo } from 'react';
 import * as d3 from 'd3';
 import { Habit } from '../types';
+import { useDebounce } from '../hooks/useDebounce';
 
 interface DailyProgressHistogramProps {
   habits: Habit[];
@@ -9,6 +10,9 @@ interface DailyProgressHistogramProps {
 
 const DailyProgressHistogram: React.FC<DailyProgressHistogramProps> = ({ habits }) => {
   const svgRef = useRef<SVGSVGElement>(null);
+
+  // Debounce habits to reduce D3 re-renders
+  const debouncedHabits = useDebounce(habits, 150);
 
   const data = useMemo(() => {
     const last30Days = [...Array(30)].map((_, i) => {
@@ -18,10 +22,10 @@ const DailyProgressHistogram: React.FC<DailyProgressHistogramProps> = ({ habits 
     }).reverse();
 
     return last30Days.map(date => {
-      const count = habits.filter(h => h.completedDays.includes(date)).length;
+      const count = debouncedHabits.filter(h => h.completedDays.includes(date)).length;
       return { date, count };
     });
-  }, [habits]);
+  }, [debouncedHabits]);
 
   useEffect(() => {
     if (!svgRef.current || data.length === 0) return;
@@ -112,4 +116,4 @@ const DailyProgressHistogram: React.FC<DailyProgressHistogramProps> = ({ habits 
   );
 };
 
-export default DailyProgressHistogram;
+export default React.memo(DailyProgressHistogram);

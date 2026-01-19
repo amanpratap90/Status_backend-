@@ -1,7 +1,8 @@
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useCallback } from 'react';
 import { Habit } from '../types';
 import { ChevronLeft, ChevronRight, Check, X } from 'lucide-react';
+import { useDebouncedCallback } from '../hooks/useDebounce';
 
 interface CalendarTrackerProps {
   habits: Habit[];
@@ -10,6 +11,9 @@ interface CalendarTrackerProps {
 
 const CalendarTracker: React.FC<CalendarTrackerProps> = ({ habits, onToggleDate }) => {
   const [currentDate, setCurrentDate] = React.useState(new Date());
+
+  // Debounce the toggle to prevent rapid successive calls
+  const debouncedToggle = useDebouncedCallback(onToggleDate, 200);
 
   const calendarData = useMemo(() => {
     const year = currentDate.getFullYear();
@@ -48,17 +52,17 @@ const CalendarTracker: React.FC<CalendarTrackerProps> = ({ habits, onToggleDate 
   const monthName = currentDate.toLocaleString('default', { month: 'long' });
   const year = currentDate.getFullYear();
 
-  const changeMonth = (offset: number) => {
+  const changeMonth = useCallback((offset: number) => {
     const newDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + offset, 1);
     setCurrentDate(newDate);
-  };
+  }, [currentDate]);
 
-  const handleDayClick = (dateStr: string, currentCount: number) => {
+  const handleDayClick = useCallback((dateStr: string, currentCount: number) => {
     // If no habits are done, mark all as done (Tick)
     // If any are done, clear all for that day (Cross)
     const shouldCompleteAll = currentCount === 0;
-    onToggleDate(dateStr, shouldCompleteAll);
-  };
+    debouncedToggle(dateStr, shouldCompleteAll);
+  }, [debouncedToggle]);
 
   return (
     <div className="bg-[#141414] border border-white/5 rounded-[2rem] p-8 shadow-xl hover:border-green-500/20 hover:shadow-[0_0_30px_-5px_rgba(34,197,94,0.1)] transition-all duration-300">
@@ -177,4 +181,4 @@ const CalendarTracker: React.FC<CalendarTrackerProps> = ({ habits, onToggleDate 
   );
 };
 
-export default CalendarTracker;
+export default React.memo(CalendarTracker);

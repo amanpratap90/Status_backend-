@@ -1,18 +1,20 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback, lazy, Suspense } from 'react';
 import Sidebar from './components/Sidebar';
 import StatsCard from './components/StatsCard';
-import ActivityMap from './components/ActivityMap';
 import HabitItem from './components/HabitItem';
-import HabitCharts from './components/HabitCharts';
 import NotesSection from './components/NotesSection';
-import DailyProgressHistogram from './components/DailyProgressHistogram';
-import CalendarTracker from './components/CalendarTracker';
+import HabitCharts from './components/HabitCharts';
 import { ViewState, Habit, User } from './types';
 import { calculateStats, login, register, logout, getCurrentUser } from './services/api';
 import { useHabits, useCreateHabit, useDeleteHabit, useToggleHabit, useToggleSubtask } from './hooks/useData';
 import { Flame, Target, CheckCircle2, Calendar, Plus, X, Loader2, ListPlus, User as UserIcon, Mail, Shield, LogOut } from 'lucide-react';
 import AuthModal from './components/AuthModal';
+
+// Lazy load heavy D3 components
+const ActivityMap = lazy(() => import('./components/ActivityMap'));
+const DailyProgressHistogram = lazy(() => import('./components/DailyProgressHistogram'));
+const CalendarTracker = lazy(() => import('./components/CalendarTracker'));
 
 const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(getCurrentUser());
@@ -51,7 +53,7 @@ const App: React.FC = () => {
 
   const stats = useMemo(() => calculateStats(habits), [habits]);
 
-  const handleAuth = async (e: React.FormEvent) => {
+  const handleAuth = useCallback(async (e: React.FormEvent) => {
     // Auth logic remains manual as it sets user session
     e.preventDefault();
     setAuthError('');
@@ -73,29 +75,29 @@ const App: React.FC = () => {
     } catch (err) {
       setAuthError('An error occurred during authentication.');
     }
-  };
+  }, [isLoginMode, authEmail, authPassword, authName, isModalOpen]);
 
-  const handleLogout = () => {
+  const handleLogout = useCallback(() => {
     logout();
     setUser(null);
     setCurrentView(ViewState.DASHBOARD);
     // React Query cache will naturally be stale/invalid but we could clear it if needed
-  };
+  }, []);
 
-  const handleOpenAddHabit = () => {
+  const handleOpenAddHabit = useCallback(() => {
     if (!user) {
       setIsAuthModalOpen(true);
     } else {
       setIsModalOpen(true);
     }
-  };
+  }, [user]);
 
-  const handleAddSubtask = () => {
+  const handleAddSubtask = useCallback(() => {
     if (subtaskInput.trim()) {
       setNewSubtasks([...newSubtasks, subtaskInput.trim()]);
       setSubtaskInput('');
     }
-  };
+  }, [subtaskInput, newSubtasks]);
 
   const handleAddHabit = async () => {
     if (!user) {
@@ -123,45 +125,46 @@ const App: React.FC = () => {
     resetNewHabitFields();
   };
 
-  const resetNewHabitFields = () => {
+  const resetNewHabitFields = useCallback(() => {
     setNewHabitName('');
     setNewHabitCategory('Health');
     setNewSubtasks([]);
     setSubtaskInput('');
-  };
+  }, []);
 
-  const handleToggle = async (id: string) => {
+  const handleToggle = useCallback(async (id: string) => {
     if (!user) {
       setIsAuthModalOpen(true);
       return;
     }
     await toggleHabitMutation.mutateAsync({ id, date: today });
-  };
+  }, [user, today, toggleHabitMutation]);
 
-  const handleToggleDateBulk = async (dateStr: string, shouldComplete: boolean) => {
+  const handleToggleDateBulk = useCallback(async (dateStr: string, shouldComplete: boolean) => {
     if (!user) {
       setIsAuthModalOpen(true);
       return;
     }
-    // Loop through affected habits and toggle individually
-    // Note: Ideally backend supports bulk, but we loop here
-    for (const h of habits) {
-      const isDone = h.completedDays.includes(dateStr);
-      if ((shouldComplete && !isDone) || (!shouldComplete && isDone)) {
-        toggleHabitMutation.mutate({ id: h.id, date: dateStr });
-      }
-    }
-  };
+    // Use Promise.all for parallel execution instead of sequential
+    const togglePromises = habits
+      .filter(h => {
+        const isDone = h.completedDays.includes(dateStr);
+        return (shouldComplete && !isDone) || (!shouldComplete && isDone);
+      })
+      .map(h => toggleHabitMutation.mutateAsync({ id: h.id, date: dateStr }));
 
-  const handleToggleSubtask = async (hId: string, sId: string) => {
+    await Promise.all(togglePromises);
+  }, [user, habits, toggleHabitMutation]);
+
+  const handleToggleSubtask = useCallback(async (hId: string, sId: string) => {
     if (!user) {
       setIsAuthModalOpen(true);
       return;
     }
     await toggleSubtaskMutation.mutateAsync({ habitId: hId, subtaskId: sId });
-  };
+  }, [user, toggleSubtaskMutation]);
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = useCallback(async (id: string) => {
     if (!user) {
       setIsAuthModalOpen(true);
       return;
@@ -169,7 +172,7 @@ const App: React.FC = () => {
     if (confirm('Delete this habit?')) {
       await deleteHabitMutation.mutateAsync(id);
     }
-  };
+  }, [user, deleteHabitMutation]);
 
   return (
     <div className="flex min-h-screen bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-gray-900 via-[#0a0a0a] to-[#050505] text-white">
@@ -179,9 +182,12 @@ const App: React.FC = () => {
         onLogout={handleLogout}
         onLoginClick={() => setIsAuthModalOpen(true)}
         user={user}
+        habits={habits}
+        onToggleHabit={handleToggle}
+        today={today}
       />
 
-      <main className="flex-1 ml-64 p-12 max-w-7xl mx-auto w-full">
+      <main className="flex-1 ml-80 mt-16 p-6 md:p-12 max-w-7xl mx-auto w-full">
         <header className="flex justify-between items-start mb-12">
           <div className="animate-in fade-in slide-in-from-left-4 duration-500">
             <h2 className="text-4xl font-bold mb-2">
@@ -213,32 +219,32 @@ const App: React.FC = () => {
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                  <CalendarTracker habits={habits} onToggleDate={handleToggleDateBulk} />
+                  <Suspense fallback={
+                    <div className="bg-[#141414] border border-white/5 rounded-[2rem] p-8 h-96 flex items-center justify-center">
+                      <Loader2 className="animate-spin text-green-500" size={32} />
+                    </div>
+                  }>
+                    <CalendarTracker habits={habits} onToggleDate={handleToggleDateBulk} />
+                  </Suspense>
                   <div className="space-y-8">
                     <HabitCharts habits={habits} />
-                    <DailyProgressHistogram habits={habits} />
+                    <Suspense fallback={
+                      <div className="bg-[#141414] border border-white/5 rounded-[2rem] p-6 h-64 flex items-center justify-center">
+                        <Loader2 className="animate-spin text-purple-500" size={24} />
+                      </div>
+                    }>
+                      <DailyProgressHistogram habits={habits} />
+                    </Suspense>
                   </div>
                 </div>
 
-                <ActivityMap habits={habits} />
-
-                <section className="mt-12">
-                  <h3 className="text-xl font-bold mb-6">Today's Focus</h3>
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                    {habits.length === 0 ? (
-                      <div className="col-span-full py-16 text-center border-2 border-dashed border-white/5 rounded-3xl">
-                        <p className="text-gray-600 mb-4">You haven't tracked anything yet.</p>
-                        <button onClick={handleOpenAddHabit} className="px-6 py-2 bg-white/5 hover:bg-white/10 text-white rounded-xl border border-white/10 transition-all">
-                          {user ? 'Add Your First Habit' : 'Sign In to Start Tracking'}
-                        </button>
-                      </div>
-                    ) : (
-                      habits.map(habit => (
-                        <HabitItem key={habit.id} habit={habit} onToggle={handleToggle} onDelete={handleDelete} onToggleSubtask={handleToggleSubtask} today={today} />
-                      ))
-                    )}
+                <Suspense fallback={
+                  <div className="bg-[#141414] border border-white/5 rounded-[2rem] p-8 h-64 flex items-center justify-center">
+                    <Loader2 className="animate-spin text-emerald-500" size={32} />
                   </div>
-                </section>
+                }>
+                  <ActivityMap habits={habits} />
+                </Suspense>
               </div>
             )}
 

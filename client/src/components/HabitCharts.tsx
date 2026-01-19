@@ -89,4 +89,4 @@ const HabitCharts: React.FC<HabitChartsProps> = ({ habits }) => {
   );
 };
 
-export default HabitCharts;
+export default React.memo(HabitCharts);
