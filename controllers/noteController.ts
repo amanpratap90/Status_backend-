@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import Note from '../models/Note';
+import Note from '../models/Note.js';
 
 export const getNotes = async (req: Request, res: Response) => {
     try {
