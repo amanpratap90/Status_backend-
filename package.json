@@ -7,7 +7,7 @@
         "dev": "cd client && vite",
         "build": "cd client && vite build",
         "preview": "cd client && vite preview",
-        "start:server": "cd backend && tsx server.ts"
+        "start:server": "cd backend && npm start"
     },
     "dependencies": {
         "@capacitor/android": "^8.0.1",
