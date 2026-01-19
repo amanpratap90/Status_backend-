@@ -13,8 +13,7 @@ const PORT = process.env.PORT || 5000;
 
 // Middleware
 const allowedOrigins = [
-    'https://status-frontend-q9a3.vercel.app/',
-    'https://status-backend-1.onrender.com',
+    'http://localhost:3000',
 
 ];
 
