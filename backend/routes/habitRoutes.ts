@@ -1,6 +1,6 @@
 import express from 'express';
-import { getHabits, createHabit, deleteHabit, toggleHabit, toggleSubtask } from '../controllers/habitController';
-import auth from '../middleware/auth';
+import { getHabits, createHabit, deleteHabit, toggleHabit, toggleSubtask } from '../controllers/habitController.js';
+import auth from '../middleware/auth.js';
 
 const router = express.Router();
 

@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import Habit from '../models/Habit';
+import Habit from '../models/Habit.js';
 
 export const getHabits = async (req: Request, res: Response) => {
     try {

@@ -1,10 +1,10 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import connectDB from './config/db';
-import authRoutes from './routes/authRoutes';
-import habitRoutes from './routes/habitRoutes';
-import noteRoutes from './routes/noteRoutes';
+import connectDB from './config/db.js';
+import authRoutes from './routes/authRoutes.js';
+import habitRoutes from './routes/habitRoutes.js';
+import noteRoutes from './routes/noteRoutes.js';
 
 dotenv.config();
 
@@ -12,14 +12,40 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Middleware
+const allowedOrigins = [
+    'http://localhost:5173',
+    process.env.FRONTEND_URL || ''
+].filter(Boolean);
+
 app.use(cors({
-    origin: 'http://localhost:5173',
+    origin: (origin, callback) => {
+        // Allow requests with no origin (like mobile apps or curl)
+        if (!origin) return callback(null, true);
+        if (allowedOrigins.includes(origin)) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
     credentials: true
 }));
 app.use(express.json());
 
 // Database Connection
 connectDB();
+
+// Health check route
+app.get('/', (req, res) => {
+    res.json({
+        status: 'ok',
+        message: 'HabitFlow Backend API is running!',
+        endpoints: {
+            auth: '/api/auth',
+            habits: '/api/habits',
+            notes: '/api/notes'
+        }
+    });
+});
 
 // Routes
 app.use('/api/auth', authRoutes);
