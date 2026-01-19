@@ -1,0 +1,8 @@
+{
+  "name": "HabitFlow",
+  "description": "A high-performance dark-themed habit tracking dashboard with GitHub-style activity heatmaps, streak monitoring, and growth insights.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
