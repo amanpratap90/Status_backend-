@@ -13,7 +13,7 @@ const PORT = process.env.PORT || 5000;
 
 // Middleware
 app.use(cors({
-    origin: 'https://status-backend-1.onrender.com',
+    origin: 'https://status-frontend-q9a3.vercel.app/',
     credentials: true
 }));
 app.use(express.json());
