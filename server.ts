@@ -13,7 +13,7 @@ const PORT = process.env.PORT || 5000;
 
 // Middleware
 const allowedOrigins = [
-    'https://jee-neet-pro.onrender.com',
+    'https://status-frontend-q9a3.vercel.app/',
 
 ];
 
