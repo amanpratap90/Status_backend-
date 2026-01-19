@@ -1,8 +1,8 @@
 
 import { Habit, UserStats, Note, User } from '../types';
 
-const API_BASE = (window as any).process?.env?.VITE_API_URL 
-  ? `${(window as any).process.env.VITE_API_URL}/api`
+const API_BASE = import.meta.env.VITE_API_URL
+  ? `${import.meta.env.VITE_API_URL}/api`
   : 'http://localhost:5000/api';
 
 const LOCAL_HABITS_KEY = 'habitflow_habits_backup';
@@ -126,7 +126,7 @@ export const toggleHabitCompletion = async (id: string, date: string): Promise<H
     const updated = habits.map(h => {
       if (h.id === id) {
         const isCompleted = h.completedDays.includes(date);
-        const newCompletedDays = isCompleted 
+        const newCompletedDays = isCompleted
           ? h.completedDays.filter(d => d !== date)
           : [...h.completedDays, date];
         return { ...h, completedDays: newCompletedDays, streak: newCompletedDays.length };
