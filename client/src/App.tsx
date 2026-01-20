@@ -21,6 +21,7 @@ const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<ViewState>(ViewState.DASHBOARD);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false); // Default to closed as per request
 
   // React Query Hooks
   const { data: habits = [], isLoading } = useHabits();
@@ -185,9 +186,13 @@ const App: React.FC = () => {
         habits={habits}
         onToggleHabit={handleToggle}
         today={today}
+        isOpen={isSidebarOpen}
+        onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
       />
 
-      <main className="flex-1 ml-80 mt-16 p-6 md:p-12 max-w-7xl mx-auto w-full">
+      <main
+        className={`flex-1 mt-16 p-6 md:p-12 max-w-7xl mx-auto w-full transition-all duration-300 ${isSidebarOpen ? 'md:ml-80' : 'md:ml-0'}`}
+      >
         <header className="flex justify-between items-start mb-12">
           <div className="animate-in fade-in slide-in-from-left-4 duration-500">
             <h2 className="text-4xl font-bold mb-2">

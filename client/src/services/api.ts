@@ -1,7 +1,7 @@
 
 import { Habit, UserStats, Note, User } from '../types';
 
-const API_BASE = 'https://status-backend-1.onrender.com/api';
+const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
 
 const LOCAL_HABITS_KEY = 'habitflow_habits_backup';
 const LOCAL_NOTES_KEY = 'habitflow_notes_backup';
