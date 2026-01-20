@@ -12,22 +12,8 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Middleware
-const allowedOrigins = [
-    'http://localhost:5173',
-    'http://localhost:3000',
-    'https://status-frontend-q9a3.vercel.app'
-].filter(Boolean);
-
 app.use(cors({
-    origin: (origin, callback) => {
-        // Allow requests with no origin (like mobile apps or curl)
-        if (!origin) return callback(null, true);
-        if (allowedOrigins.includes(origin)) {
-            callback(null, true);
-        } else {
-            callback(new Error('Not allowed by CORS'));
-        }
-    },
+    origin: true, // Allow all origins for debugging
     credentials: true
 }));
 app.use(express.json());
