@@ -5,8 +5,9 @@
     "type": "module",
     "scripts": {
         "dev": "cd client && vite",
-        "build": "cd client && vite build",
+        "build": "cd backend && npm install && npm run build",
         "preview": "cd client && vite preview",
+        "start": "cd backend && npm start",
         "start:server": "cd backend && npm start"
     },
     "dependencies": {
